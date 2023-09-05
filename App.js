@@ -1,30 +1,66 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Button } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Button, TextInput } from 'react-native';
+import * as Location from 'expo-location';
 import AddressForm from './AddressForm';
 import JobList from './JobList';
 import JobsMap from './JobsMap';
 
 const App = () => {
 
-  const [jobs, setJobs] = useState([
-    { address: '2 Ironwood Cresent Stouffville Ontario', technician: 'Justin', id: '1' },
-    { address: '44 Flint Cresent Stouffville Ontario', technician: 'Grant', id: '2' },
-  ]);
+  const [location, setLocation] = useState();
+  const [address, setAddress] = useState();
+
+  //Location.setGoogleApiKey("AIzaSyD5GUOMMrDY5Ml8JOQ5j7z7p9f8GaGCDBg");
+
+  useEffect(() => {
+    const getPermissions = async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.log("Please grant location permissions");
+        return;
+      }
+
+      let currentLocation = await Location.getCurrentPositionAsync({});
+      setLocation(currentLocation);
+      console.log("Location:");
+      console.log(currentLocation);
+    };
+    getPermissions();
+  }, []);
+
+  const geocode = async () => {
+    const geocodedLocation = await Location.geocodeAsync(address);
+    console.log("Geocoded Latitude:", geocodedLocation[0].latitude);
+    console.log("Geocoded Longitude:", geocodedLocation[0].longitude);
+  };
+
+  const reverseGeocode = async () => {
+    const reverseGeocodedAddress = await Location.reverseGeocodeAsync({
+      longitude: location.coords.longitude,
+      latitude: location.coords.latitude
+    });
+
+    console.log("Reverse Geocoded:");
+    console.log(reverseGeocodedAddress);
+  };
 
   return (
     <View style={styles.container}>
-      <JobList jobs={jobs}></JobList>
+      <TextInput placeholder='Address' value={address} onChangeText={setAddress} />
+      <Button title="Geocode Address" onPress={geocode} />
+      <Button title="Reverse Geocode Current Location" onPress={reverseGeocode} />
+      <StatusBar style="auto" />
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    backgroundColor: '#fff',
     alignItems: 'center',
-    padding: 20,
+    justifyContent: 'center',
   },
 });
 
