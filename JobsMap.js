@@ -1,30 +1,64 @@
-import React from 'react';
 import MapView, { Marker } from 'react-native-maps';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, Button, TextInput } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import * as Location from 'expo-location';
 
 const JobsMap = ({ jobs }) => {
+    const [location, setLocation] = useState();
+    const [address, setAddress] = useState();
+
+    //Location.setGoogleApiKey("AIzaSyD5GUOMMrDY5Ml8JOQ5j7z7p9f8GaGCDBg");
+
+    useEffect(() => {
+        const getPermissions = async () => {
+            let { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+                console.log("Please grant location permissions");
+                return;
+            }
+
+            let currentLocation = await Location.getCurrentPositionAsync({});
+            setLocation(currentLocation);
+            console.log("Location:");
+            console.log(currentLocation);
+        };
+        getPermissions();
+    }, []);
+
+    const geocode = async () => {
+        const geocodedLocation = await Location.geocodeAsync(address);
+        console.log("Geocoded Latitude:", geocodedLocation[0].latitude);
+        console.log("Geocoded Longitude:", geocodedLocation[0].longitude);
+    };
+
+    const reverseGeocode = async () => {
+        const reverseGeocodedAddress = await Location.reverseGeocodeAsync({
+            longitude: location.coords.longitude,
+            latitude: location.coords.latitude
+        });
+
+        console.log("Reverse Geocoded:");
+        console.log(reverseGeocodedAddress);
+    };
+
     return (
-        <MapView
-            style={{ flex: 1 }}
-            initialRegion={{
-                latitude: 43.771092,    // This is an arbitrary starting point
-                longitude: -79.419747,  // Ideally, you'd calculate the average or a central point of all jobs
-                latitudeDelta: 0.0922,
-                longitudeDelta: 0.0421,
-            }}
-        >
-            {jobs.map(job => (
-                <Marker
-                    key={job.id}
-                    coordinate={{
-                        latitude: job.latitude,  // You'd have to add latitude and longitude to your jobs
-                        longitude: job.longitude, // Or use a service/API to get them from the addresses
-                    }}
-                    title={job.title}
-                    description={`${job.houseNumber} ${job.street}, ${job.city}, ${job.province}`}
-                />
-            ))}
-        </MapView>
+        <View style={styles.container}>
+            <TextInput placeholder='Address' value={address} onChangeText={setAddress} />
+            <Button title="Geocode Address" onPress={geocode} />
+            <Button title="Reverse Geocode Current Location" onPress={reverseGeocode} />
+            <StatusBar style="auto" />
+        </View>
     );
-};
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#fff',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+});
 
 export default JobsMap;
