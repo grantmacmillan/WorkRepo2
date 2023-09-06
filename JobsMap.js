@@ -8,8 +8,6 @@ const JobsMap = ({ jobs }) => {
     const [location, setLocation] = useState();
     const [address, setAddress] = useState();
 
-    //Location.setGoogleApiKey("AIzaSyD5GUOMMrDY5Ml8JOQ5j7z7p9f8GaGCDBg");
-
     useEffect(() => {
         const getPermissions = async () => {
             let { status } = await Location.requestForegroundPermissionsAsync();
